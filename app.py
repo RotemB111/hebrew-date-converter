@@ -26,7 +26,6 @@ def convert():
     after_sunset = request.args.get("afterSunset") == "true"
 
     # 1. Validate the input - the date must exist
-    #    (Hebcal would silently turn Feb 30 into Mar 2)
     try:
         valid = datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d") == date
     except ValueError:
@@ -34,8 +33,7 @@ def convert():
     if not valid:
         return jsonify(error="This date does not exist, please check it"), 400
 
-    # 2. Build the Hebcal request, e.g.
-    #    https://www.hebcal.com/converter?cfg=json&date=2011-06-02&g2h=1
+    # 2. Build the Hebcal request
     params = {
         "cfg": "json",  # return JSON
         "date": date,   # Gregorian date YYYY-MM-DD
