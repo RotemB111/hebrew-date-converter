@@ -1,5 +1,8 @@
 # Hebrew Date Converter
 
+**Live demo:** https://hebrew-date-converter-rs6j.onrender.com
+*(free hosting – the first load may take ~30 seconds while the server wakes up)*
+
 A simple web service and page that converts a Gregorian date to a Hebrew date, using the [Hebcal Hebrew Date Converter REST API](https://www.hebcal.com/home/219/hebrew-date-converter-rest-api).
 
 ## How it works
