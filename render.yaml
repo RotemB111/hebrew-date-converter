@@ -1,0 +1,8 @@
+# Deployment settings for Render.com (free web hosting for the Python server)
+services:
+  - type: web
+    name: hebrew-date-converter
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app

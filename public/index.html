@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hebrew Date Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f4f8;
+      display: flex;
+      justify-content: center;
+      padding: 60px 16px;
+      margin: 0;
+    }
+    .card {
+      background: #fff;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    h1 { font-size: 24px; margin-top: 0; }
+    input[type="text"], button {
+      font-size: 16px;
+      padding: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 12px;
+    }
+    #date { text-align: center; }
+    label.checkbox { display: block; margin-top: 12px; font-size: 14px; }
+    button {
+      background: #2b6cb0;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:disabled { background: #999; cursor: wait; }
+    #result { margin-top: 24px; }
+    .hebrew { font-size: 28px; font-weight: bold; direction: rtl; }
+    .english { color: #555; margin-top: 6px; }
+    .events { color: #2b6cb0; margin-top: 10px; font-size: 14px; }
+    .error { color: #c53030; }  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Hebrew Date Converter</h1>
+
+    <form id="form">
+      <input type="text" id="date" placeholder="DD/MM/YYYY" required>
+      <label class="checkbox">
+        <input type="checkbox" id="afterSunset"> After sunset
+      </label>
+      <button type="submit" id="btn">Convert</button>
+    </form>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('form');
+    const dateInput = document.getElementById('date');
+    const afterSunset = document.getElementById('afterSunset');
+    const btn = document.getElementById('btn');
+    const result = document.getElementById('result');
+
+    // Default to today's date, shown as DD/MM/YYYY
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    dateInput.value = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      result.textContent = 'Converting...';
+
+      try {
+        // Convert DD/MM/YYYY (what the user types) to YYYY-MM-DD (what the API expects)
+        const match = dateInput.value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (!match) throw new Error('Please enter the date as DD/MM/YYYY');
+        const [, day, month, year] = match;
+        const isoDate = `${year}-${pad(month)}-${pad(day)}`;
+
+        const url = `/api/convert?date=${isoDate}&afterSunset=${afterSunset.checked}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.error);
+
+        result.innerHTML = '';
+        addLine('hebrew', data.hebrew);
+        addLine('english', data.english);
+        if (data.events.length) addLine('events', data.events.join(' • '));
+      } catch (err) {
+        result.innerHTML = '';
+        // A TypeError from fetch means our server could not be reached at all
+        const message = err instanceof TypeError
+          ? 'Cannot reach the server. Make sure it is running (python app.py) and open http://localhost:3000'
+          : err.message || 'Something went wrong';
+        addLine('error', message);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // Helper: add a line of text to the result box (textContent avoids HTML injection)
+    function addLine(className, text) {
+      const div = document.createElement('div');
+      div.className = className;
+      div.textContent = text;
+      result.appendChild(div);
+    }
+  </script>
+</body>
+</html>
